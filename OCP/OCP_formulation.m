@@ -41,7 +41,10 @@ import casadi.*
 % about the external function can be found in the documentation.
 F  = external('F',fullfile(S.misc.subject_path,S.misc.external_function));
 
-
+%% Prepare just-in-time compilation if needed
+if S.solver.jit
+    [S] = jit_preparation(S);
+end
 %% Collocation Scheme
 % We use a pseudospectral direct collocation method, i.e. we use Lagrange
 % polynomials to approximate the state derivatives at the collocation
@@ -446,7 +449,17 @@ f_coll = Function('f_coll',coll_input_vars_def,...
     ineq_constr4,ineq_constr5,ineq_constr6,J});
 
 % assign function to multiple cores
-f_coll_map = f_coll.map(N,S.solver.parallel_mode,S.solver.N_threads);
+if S.solver.jit
+    % compile collocation function and load as external
+    [f_coll_jit, lib_coll] = compile_CasADI_Function(f_coll,S.solver.jit_work_dir_path,S.solver.jit_libs);
+    % add lib we can link the external function
+    S.solver.jit_libs{end+1} = lib_coll;
+    % assign function to multiple cores
+    f_coll_map = f_coll_jit.map(N,S.solver.parallel_mode,S.solver.N_threads);
+else
+    % assign function to multiple cores
+    f_coll_map = f_coll.map(N,S.solver.parallel_mode,S.solver.N_threads);
+end
 
 % evaluate function with opti variables
 coll_input_vars_eval = {tf,a(:,1:end-1), a_col, FTtilde(:,1:end-1), FTtilde_col,...
@@ -627,17 +640,22 @@ else
     options.ipopt.linear_solver         = S.solver.linear_solver;
     options.ipopt.tol                   = 1*10^(-S.solver.tol_ipopt);
     options.ipopt.constr_viol_tol       = 1*10^(-S.solver.tol_ipopt);
-    if S.Solver.jit
-        copyfile(fullfile(S.misc.subject_path,S.misc.external_function),S.misc.main_path);
-        [~,osim_file_name,~] = fileparts(model_info.osim_path);
-        pathLib = fullfile(S.misc.main_path,'opensimAD','install-ExternalFunction',...
-            ['F_' osim_file_name],'lib',['F_' osim_file_name '.lib']);
-        copyfile(pathLib,S.misc.main_path);
+    if S.solver.jit
+        % use just-in-time compiling
         options.jit = true;
-        options.compiler = 'shell'; % use system compiler
-        options.jit_options.flags = {'/Ox','/openmp'}; % optimize code for fast evaluation
-        options.jit_options.linker_flags = {['F_' osim_file_name '.lib']};
+        % use system compiler
+        options.compiler = 'shell';
+        % pass .lib of external function to linker
+        options.jit_options.linker_flags = S.solver.jit_libs;
+        % verbose
         options.jit_options.verbose = true;
+        % add compiler flags (e.g. to optimize code for speed)
+        if ~isempty(S.solver.jit_compiler_flags)
+            options.jit_options.flags = S.solver.jit_compiler_flags;
+        end
+        % set working dir
+        options.jit_options.folder = S.solver.jit_work_dir_path;
+
     end
     opti.solver('ipopt', options);
     % timer
@@ -653,11 +671,12 @@ else
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     diary off
-    % clean jit files
-    if S.Solver.jit
-        delete(fullfile(S.misc.main_path,['F_' osim_file_name '.lib']));
-        delete(fullfile(S.misc.main_path,['F_' osim_file_name '.dll']));
+    
+    if S.solver.jit
+        % clean temporary files and folders used for just-in-time compilation
+        jit_cleanup(S);
     end
+
     % Extract results
     % Create setup
     setup.tolerance.ipopt = S.solver.tol_ipopt;

@@ -208,14 +208,28 @@ if ~isfield(S.solver,'tol_ipopt')
     S.solver.tol_ipopt = 4;
 end
 
-% maximal amount of itereations after wich the solver will stop
+% maximal amount of iteeations after wich the solver will stop
 if ~isfield(S.solver,'max_iter')
     S.solver.max_iter = 10000;
 end
 
+% just-in-time compiling
+if ~isfield(S.solver,'jit')
+    S.solver.jit = 0;
+end
+
+% compiler flags for just-in-time compiling
+if ~isfield(S.solver,'jit_compiler_flags')
+    S.solver.jit_compiler_flags = [];
+end
+
 % type of parallel computing
 if ~isfield(S.solver,'parallel_mode')
-    S.solver.parallel_mode = 'thread';
+    if ~S.solver.jit
+        S.solver.parallel_mode = 'thread';
+    else
+        S.solver.parallel_mode = 'openmp';
+    end
 end
 
 % ADD CHECK ST THIS IS ONLY  USED WHEN USING THREAD PARALLEL MODE?

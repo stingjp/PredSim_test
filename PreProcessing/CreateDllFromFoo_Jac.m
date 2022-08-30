@@ -19,9 +19,9 @@ function [] = CreateDllFromFoo_Jac(filename, cpp_dir, compiler, pathMain, vararg
 %
 %   - verbose_mode (optional input) -
 %   * 0 no output, 1 all output (default)
+%
 % OUTPUT:
-%   - model_info -
-%   * structure with all the model information based on the OpenSim model
+%   - this function has no outputs -
 % 
 % Original author: Maarten Afschrift
 % Original date: 17/May/2022
@@ -63,6 +63,9 @@ end
 cd(pathMain)
 copyfile(fullfile(path_external_functions_filename_install, 'bin',[filename '.dll']),...
     fullfile(cpp_dir,[filename '.dll']));
+
+copyfile(fullfile(path_external_functions_filename_install, 'lib',[filename '.lib']),...
+    fullfile(cpp_dir,[filename '.lib']));
 
 % cleaning up
 delete(fullfile(pathBuildExternalFunction, 'foo_jac.c'));
