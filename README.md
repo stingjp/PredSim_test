@@ -174,10 +174,14 @@ This code can automatically convert an OpenSim model to the external function us
 	- the power (10^-x) the tolerance ipopt has to reach before the OCP can be regarded as solved; a higher number gives a more precise answer. Default is *4* [double]
 - **S.solver.max_iter**: 
 	- maximal amount of iterations after wich the solver will stop. Default is *10000* [double]
+- **S.solver.jit**:
+	- [Just-in-time compile CasADi functions](https://github.com/casadi/casadi/wiki/FAQ:-how-to-perform-jit-for-function-evaluations-of-my-optimization-problem%3F). Default is *0* [double] 
+- **S.solver.jit**:
+	- 
 - **S.solver.parallel_mode**: 
 	- type of parallel computing. Default is *thread* [char].
 - **S.solver.N_threads**: 
-	- number of threads in parallel mode. Default is *4* [double]. When using batch computing, this value is overwritten with the number of threads assigned to each worker in you parallel cluster.
+	- number of threads in parallel mode. Default is *4* [double]. When using batch computing, this value is overwritten with the number of threads assigned to each worker in your parallel cluster.
 - **S.solver.N_meshes**: 
 	- number of mesh intervals. Default is *50* [double]
 
