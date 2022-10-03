@@ -1,5 +1,5 @@
 function [] = run_pred_sim(S,osim_path)
-
+t00 = tic;
 addpath([S.misc.main_path '\VariousFunctions'])
 
 % Settings that are not specified get thier default value
@@ -78,4 +78,7 @@ PostProcessing(S,model_info,f_casadi);
 disp(['... PostProcessing done. Time elapsed ' num2str(toc(t0)) ' s'])
 
 
+
+disp('============================================================')
+disp(['Total time:' num2str(toc(t00)) ' s'])
 

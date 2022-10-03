@@ -108,7 +108,7 @@ for j=1:n_tests
         ref_o = full(ref_output{i});
         test_o = full(test_output{i});
         % absolute difference
-        diff_o = ref_o - test_o;
+        diff_o = ref_o(:) - test_o(:);
         out_diff{j,i} = diff_o;
         % test relative difference versus tolerance (implicit formulation to
         % avoid- dividing by 0)

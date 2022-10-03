@@ -28,6 +28,19 @@ import casadi.*
 % Check for existing file with polynomial approximation, and load if it
 % exists. We only perform muscle analysis and fitting if the result is not 
 % yet available, because the analysis takes long.
+
+% Load from dll
+if S.solver.msk_geom_codegen
+    test_dll = isfile(fullfile(S.misc.subject_path,[S.misc.msk_geom_name '.dll']));
+    test_lib = isfile(fullfile(S.misc.subject_path,[S.misc.msk_geom_name '.lib']));
+
+    if test_lib && test_dll
+        f_lMT_vMT_dM = external('f_lMT_vMT_dM',fullfile(S.misc.subject_path,[S.misc.msk_geom_name '.dll']));
+        return
+    end
+end
+
+% Load from file
 if isfile(fullfile(S.misc.subject_path,S.misc.msk_geom_name)) && isempty(S.misc.msk_geom_bounds)
     f_lMT_vMT_dM = Function.load(fullfile(S.misc.subject_path,S.misc.msk_geom_name));
     
@@ -65,6 +78,16 @@ elseif strcmp(S.misc.msk_geom_eq,'polynomials')
     
     % Save function for later use
     f_lMT_vMT_dM.save(fullfile(S.misc.subject_path,S.misc.msk_geom_name));
+end
+
+% Generate dll
+if S.solver.msk_geom_codegen
+    tmp_dir = pwd;
+    cd(S.misc.subject_path)
+    [f_tmp,~] = compile_CasADI_Function(f_lMT_vMT_dM,S.misc.subject_path,[],S.misc.msk_geom_name);
+    clearvars('f_lMT_vMT_dM')
+    f_lMT_vMT_dM = f_tmp;
+    cd(tmp_dir)
 end
 
 end

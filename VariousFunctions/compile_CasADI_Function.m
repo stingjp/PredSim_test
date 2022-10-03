@@ -1,4 +1,4 @@
-function [func, lib] = compile_CasADI_Function(fun,work_dir,libs)
+function [func, lib] = compile_CasADI_Function(fun,work_dir,libs,varargin)
 % --------------------------------------------------------------------------
 % compile_CasADI_Function
 %   This functions compiles a CasADi Function into a .dll, and loads it
@@ -31,7 +31,11 @@ function [func, lib] = compile_CasADI_Function(fun,work_dir,libs)
 import casadi.*
 
 % name of function
-fun_name = fun.name;
+if length(varargin)>=1
+    fun_name = varargin{1};
+else
+    fun_name = fun.name;
+end
 
 %% Generate C code
 % create code generator
@@ -45,13 +49,17 @@ CG.generate([work_dir '/']);
 
 %% Compile C code into dll
 
-% options.flags = {'/O2'};
+options.flags = {'/Ox'};
 options.folder = work_dir;
-options.linker_flags = libs;
+if ~isempty(libs)
+    options.linker_flags = libs;
+end
 options.cleanup = false;
+options.name = fun_name;
+options.temp_suffix = false;
 Ip = Importer([fun_name '.c'],'shell',options);
 
-func = external(fun_name,Ip);
+func = external(fun.name,Ip);
 
 %% Get name of .lib file
 LibFiles = dir(fullfile(work_dir,'*.lib'));

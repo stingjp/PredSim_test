@@ -23,7 +23,8 @@ addpath([S.misc.main_path '\VariousFunctions'])
 
 %% Required inputs
 % name of the subject
-S.subject.name = 'Subject1a_2D';
+% S.subject.name = 'Falisse_et_al_2022';
+S.subject.name = 'Subject1_2D';
 
 % path to folder where you want to store the results of the OCP
 S.subject.save_folder  = fullfile(pathRepoFolder,'PredSimResults',S.subject.name); 
@@ -70,22 +71,25 @@ S.solver.run_as_batch_job = 0;
 
 % % S.post_process
 % S.post_process.make_plot = '';
-% S.post_process.savename  = 'datetime';
+S.post_process.savename  = 'datetime';
 % S.post_process.rerun   = 1;
 % S.post_process.rerun_from_w = 1;
-% S.post_process.result_filename = 'testcase_w_jit_Ox_p6';
+% S.post_process.result_filename = '';
 
 % % S.solver
 % S.solver.linear_solver  = 'ma86';
 % S.solver.tol_ipopt      = ;
 % S.solver.max_iter       = 5;
 % S.solver.parallel_mode  = '';
-S.solver.N_threads      = 6;
+S.solver.N_threads      = 4;
 % S.solver.N_meshes       = 50;
 % S.solver.par_cluster_name = ;
 S.solver.CasADi_path    = 'C:\GBW_MyPrograms\casadi_3_5_5';
-% S.solver.jit = 1;
-% S.solver.jit_compiler_flags = {'/Ox'};
+S.solver.jit = 1;
+S.solver.jit_compiler_flags = {'/Ox'};
+S.solver.msk_geom_codegen = 1;
+S.solver.mus_dyn_codegen = 1; % 0: use old, 1: use new, 2: use new + test vs old
+S.solver.metab_codegen = 1; % 0: use old, 1: use new, 2: use new + test vs old
 
 % % S.subject
 % S.subject.mass              = ;

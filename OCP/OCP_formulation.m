@@ -338,8 +338,7 @@ for j=1:d
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Call external function (run inverse dynamics)
-%     [Tj] = F([QsQdotskj_nsc(:,j+1);Aj_nsc(:,j)]);
-    [Tj] = evaluate_external_function(S,model_info,QsQdotskj_nsc(:,j+1),[], Aj_nsc(:,j));
+    [Tj] = F([QsQdotskj_nsc(:,j+1);Aj_nsc(:,j)]);
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Add path constraints
@@ -450,10 +449,23 @@ f_coll = Function('f_coll',coll_input_vars_def,...
 
 % assign function to multiple cores
 if S.solver.jit
+    % add msk geometry lib if compiled
+    if S.solver.msk_geom_codegen
+        S.solver.jit_libs{end+1} = fullfile(S.misc.subject_path,[S.misc.msk_geom_name '.lib']);
+    end
+    % add muscle dynamics lib if compiled
+    if S.solver.mus_dyn_codegen
+        S.solver.jit_libs{end+1} = fullfile(S.misc.main_path,'CasadiFunctions','muscle_contraction_dynamics.lib');
+    end
+    % add metabolic energy model lib if compiled
+    if S.solver.metab_codegen
+        S.solver.jit_libs{end+1} = fullfile(S.misc.main_path,'CasadiFunctions','metabolic_energy_models.lib');
+    end
     % compile collocation function and load as external
     [f_coll_jit, lib_coll] = compile_CasADI_Function(f_coll,S.solver.jit_work_dir_path,S.solver.jit_libs);
     % add lib we can link the external function
     S.solver.jit_libs{end+1} = lib_coll;
+    
     % assign function to multiple cores
     f_coll_map = f_coll_jit.map(N,S.solver.parallel_mode,S.solver.N_threads);
 else
@@ -646,7 +658,8 @@ else
         % use system compiler
         options.compiler = 'shell';
         % pass .lib of external function to linker
-        options.jit_options.linker_flags = S.solver.jit_libs;
+%         options.jit_options.linker_flags = S.solver.jit_libs;
+        options.jit_options.linker_flags = 'f_coll.lib';
         % verbose
         options.jit_options.verbose = true;
         % add compiler flags (e.g. to optimize code for speed)
@@ -655,6 +668,8 @@ else
         end
         % set working dir
         options.jit_options.folder = S.solver.jit_work_dir_path;
+        % keep tmp files
+        options.jit_options.cleanup = false;
 
     end
     opti.solver('ipopt', options);
@@ -674,7 +689,7 @@ else
     
     if S.solver.jit
         % clean temporary files and folders used for just-in-time compilation
-        jit_cleanup(S);
+%         jit_cleanup(S);
     end
 
     % Extract results

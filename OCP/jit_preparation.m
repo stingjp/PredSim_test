@@ -36,8 +36,8 @@ else
     warning(['"' work_dir_path '" already exists, just-in-time compiling could have issues'])
 end
 
-% copy .dll to working dir
-copyfile(fullfile(S.misc.subject_path,S.misc.external_function),work_dir_path);
+% % copy .dll to working dir
+% copyfile(fullfile(S.misc.subject_path,S.misc.external_function),work_dir_path);
 
 % backwards compatibility .lib 
 base_name = S.misc.external_function(1:end-4);
@@ -48,10 +48,10 @@ if ~isfile(lib_path)
     copyfile(pathLib,lib_path);
 end
 
-% copy .lib to working dir
-copyfile(lib_path,work_dir_path);
+% % copy .lib to working dir
+% copyfile(lib_path,work_dir_path);
 
-S.solver.jit_libs{1} = lib_name;
+S.solver.jit_libs{1} = lib_path;
 
 %% Settings
 % parallel computing

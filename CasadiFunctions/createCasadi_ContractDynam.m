@@ -35,6 +35,13 @@ import casadi.*
 N_muscles = model_info.muscle_info.NMuscle;
 
 
+%% Metabolic energy model parameters
+% We extract the specific tensions and slow twitch rations.
+tensions = struct_array_to_double_array(model_info.muscle_info.parameters,'specific_tension');
+pctsts = struct_array_to_double_array(model_info.muscle_info.parameters,'slow_twitch_fiber_ratio');
+
+%% Function to compute muscle mass
+MuscleMass = struct_array_to_double_array(model_info.muscle_info.parameters,'muscle_mass');
 
 %% Muscle contraction dynamics
 % Function for Hill-equilibrium
