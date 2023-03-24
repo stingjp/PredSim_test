@@ -417,6 +417,12 @@ if ~isfield(S.weights,'a')
     S.weights.a = 2000; 
 end
 
+% exponent for muscle activations
+if ~isfield(S.weights,'a_exp')
+    S.weights.a_exp = 2; 
+end
+
+
 % weight on slack controls
 if ~isfield(S.weights,'slack_ctrl')
     S.weights.slack_ctrl = 0.001; 

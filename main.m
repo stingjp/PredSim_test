@@ -23,7 +23,8 @@ addpath(fullfile(S.misc.main_path,'VariousFunctions'))
 
 %% Required inputs
 % name of the subject
-S.subject.name = 'Falisse_et_al_2022';
+S.subject.name = '2D_gait_moco';
+% S.subject.name = 'DHondt_2023_2seg';
 
 % path to folder where you want to store the results of the OCP
 S.subject.save_folder  = fullfile(pathRepoFolder,'PredSimResults',S.subject.name); 
@@ -46,8 +47,14 @@ S.solver.run_as_batch_job = 0;
 % see README.md in the main folder for information about these optional
 % inputs.
 
+muscles_ankle = {'soleus_r','lat_gas_r','med_gas_r','tib_ant_r','per_long_r',...
+    'per_brev_r','per_tert_r','tib_post_r','flex_dig_r','flex_hal_r','ext_hal_r','ext_dig_r',...
+    'soleus_l','lat_gas_l','med_gas_l','tib_ant_l','per_long_l',...
+    'per_brev_l','per_tert_l','tib_post_l','flex_dig_l','flex_hal_l','ext_hal_l','ext_dig_l'};
+
+
 % % S.bounds
-% S.bounds.a.lower            = ;
+S.bounds.a.lower            = 0.01;
 % S.bounds.calcn_dist.lower   = ;
 % S.bounds.toes_dist.lower    = ;
 % S.bounds.tibia_dist.lower   = ;
@@ -56,10 +63,10 @@ S.solver.run_as_batch_job = 0;
 % S.bounds.dist_trav.lower    = ;
 % S.bounds.t_final.upper      = ;
 % S.bounds.t_final.lower      = ;
-% S.bounds.coordinates        = {'pelvis_tilt',-30,30,'pelvis_list',-30,30};
+S.bounds.coordinates        = {'lumbar_extension',-10,20};
 
 % % S.metabolicE - metabolic energy
-% S.metabolicE.tanh_b = ;
+% S.metabolicE.tanh_b = 100;
 % S.metabolicE.model  = '';
 
 % % S.misc - miscellanious
@@ -73,7 +80,7 @@ S.solver.run_as_batch_job = 0;
 % S.misc.gaitmotion_type = ;
 
 % % S.post_process
-S.post_process.make_plot = 1;
+S.post_process.make_plot = 0;
 % S.post_process.savename  = 'datetime';
 % S.post_process.rerun   = 1;
 % S.post_process.load_prev_opti_vars = 0;
@@ -84,7 +91,7 @@ S.post_process.make_plot = 1;
 % S.solver.tol_ipopt      = ;
 % S.solver.max_iter       = 5;
 % S.solver.parallel_mode  = '';
-% S.solver.N_threads      = 6;
+S.solver.N_threads      = 2;
 % S.solver.N_meshes       = 50;
 % S.solver.par_cluster_name = ;
 S.solver.CasADi_path    = 'C:\GBW_MyPrograms\casadi_3_5_5';
@@ -92,33 +99,37 @@ S.solver.CasADi_path    = 'C:\GBW_MyPrograms\casadi_3_5_5';
 % % S.subject
 % S.subject.mass              = ;
 % S.subject.IG_pelvis_y       = ;
-S.subject.v_pelvis_x_trgt   = 1.33;
+S.subject.v_pelvis_x_trgt   = 1.2;
 % S.subject.IK_Bounds = ;
 % S.subject.muscle_strength   = ;
-% S.subject.muscle_pass_stiff_shift = {{'soleus_l','soleus_r'},0.9,{'tib_ant_l'},1.1};
+% S.subject.muscle_pass_stiff_shift = {muscles_ankle,0.9};
 % S.subject.muscle_pass_stiff_scale = ;
-% S.subject.tendon_stiff_scale      = {{'soleus_l','soleus_r','gastroc_r','gastroc_l'},0.5};
+% S.subject.tendon_stiff_scale      = {{'soleus_r','lat_gas_r','med_gas_r', 'soleus_l','lat_gas_l','med_gas_l'},0.5};
 % S.subject.mtp_type          = '2022paper';
-% S.subject.scale_MT_params         = {{'soleus_l'},'FMo',0.9,{'soleus_l'},'alphao',1.1};
+% S.subject.scale_MT_params         = {{'soleus_r','lat_gas_r','med_gas_r', 'soleus_l','lat_gas_l','med_gas_l'},'FMo',1.2};
 % S.subject.spasticity        = ;
 % S.subject.muscle_coordination = ;
+S.subject.damping_coefficient_all_dofs = 0; 
 % S.subject.set_stiffness_coefficient_selected_dofs = {{'mtp_angle_l','mtp_angle_r'},25};
 % S.subject.set_damping_coefficient_selected_dofs = {{'mtp_angle_l','mtp_angle_r'},2};
-% S.subject.set_limit_torque_coefficients_selected_dofs = {{'mtp_angle_l','mtp_angle_r'},[0,0,0,0],[0,0]};
+S.subject.set_limit_torque_coefficients_selected_dofs = {{'mtp_angle_l','mtp_angle_r'},[0,0,0,0],[0,0]};
+S.subject.set_limit_torque_coefficients_selected_dofs = {{'hip_flexion_r','knee_angle_r','ankle_angle_r',...
+    'hip_flexion_l','knee_angle_l','ankle_angle_l','lumbar_extension'},[0,0,0,0],[0,0]};
 
 % % S.weights
-% S.weights.E         = 0;
+S.weights.E         = 0;
 % S.weights.E_exp     = 1;
-% S.weights.q_dotdot  = 1;
-% S.weights.e_arm     = 1;
-% S.weights.pass_torq = 0;
-% S.weights.a         = 1;
+S.weights.q_dotdot  = 0;
+S.weights.e_arm     = 10;
+S.weights.pass_torq = 0;
+S.weights.a         = 10*18;
+S.weights.a_exp     = 2;
 % S.weights.slack_ctrl = ;
 % S.weights.pass_torq_includes_damping = ;
 
 % %S.Cpp2Dll inputs to convert .osim to .dll
 % S.Cpp2Dll.compiler = 'Visual Studio 17 2022';
-% S.Cpp2Dll.export3DSegmentOrigins = [];
+S.Cpp2Dll.export3DSegmentOrigins = [];
 S.Cpp2Dll.verbose_mode = 0; % 0 for no outputs from cmake
 % S.Cpp2Dll.jointsOrder = ;
 % S.Cpp2Dll.coordinatesOrder = ;
